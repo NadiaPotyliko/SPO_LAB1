@@ -6,114 +6,92 @@ using namespace std;
 #define INFO_BUFFER_SIZE 3276
 #define MAX_KEY_LENGTH 255
 
-double PCFreq = 0.0;
-__int64 CounterStart = 0;
-//Замер рабочей частоты f ЦП
-void StartCounter()
-{
- LARGE_INTEGER frequency;
- if (!QueryPerformanceFrequency(&frequency))
-  cout << "\nQueryPerformanceFrequency ERROR!\n";
- PCFreq = double(frequency.QuadPart);
- printf("\n\nProcessor frequency in 2.1:  %u Hz\n", frequency);
- QueryPerformanceCounter(&frequency);
- CounterStart = frequency.QuadPart;
-}
+int main(){
+  LARGE_INTEGER lpPerformanceCount_s;
+  QueryPerformanceCounter(&lpPerformanceCount_s); //РІС‹РґР°РµС‚ С‚РµРєСѓС‰РµРµ Р·РЅР°С‡РµРЅРёРµ СЃС‡РµС‚С‡РёРєР°, РєРѕС‚РѕСЂС‹Р№ РЅРµРїСЂРµСЂС‹РІРЅРѕ Рё СЂР°РІРЅРѕРјРµСЂРЅРѕ СЂР°СЃС‚РµС‚ СЃ РјРѕРјРµРЅС‚Р° РІРєР»СЋС‡РµРЅРёСЏ РєРѕРјРїСЊСЋС‚РµСЂР°
+  // 1.1 // РћРїСЂРµРґРµР»РµРЅРёРµ Рё РІС‹РІРѕРґ РІРµСЂСЃРёРё РѕРїРµСЂР°С†РёРѕРЅРЅРѕР№  СЃРёСЃС‚РµРјС‹
+  OSVERSIONINFO osVers = { 0 };// Р—Р°РїРѕР»РЅСЏРµРј СЃС‚СЂСѓРєС‚СѓСЂСѓ РЅСѓР»РµРІС‹РјРё Р±Р°Р№С‚Р°РјРё (СЃРїРµС†РёР°Р»СЊРЅС‹Р№ СЃРёРЅС‚Р°РєСЃРёСЃ C89).
+  osVers.dwOSVersionInfoSize = sizeof(OSVERSIONINFO); // WinAPI С‚СЂРµР±СѓРµС‚ СѓРєР°Р·С‹РІР°С‚СЊ СЂР°Р·РјРµСЂ СЃС‚СЂСѓРєС‚СѓСЂС‹, С‡С‚РѕР±С‹ РёРјРµС‚СЊ РІРѕР·РјРѕР¶РЅРѕСЃС‚СЊСЂР°СЃС€РёСЂСЏС‚СЊ СЃС‚СЂСѓРєС‚СѓСЂСѓ РІ РЅРѕРІС‹С… РІРµСЂСЃРёСЏС… РћРЎ.
+  GetVersionEx(&osVers); // РїРѕР»СѓС‡РёС‚СЊ РЅРѕРјРµСЂ РІРµСЂСЃРёРё РћРЎ
+  printf("Windows v%d.%d (build %d)\n", osVers.dwMajorVersion, osVers.dwMinorVersion, osVers.dwBuildNumber);
 
-//Подсчет количества тактов ЦП
-double GetCounter()
-{
- LARGE_INTEGER frequency;
- QueryPerformanceCounter(&frequency);
- return double(frequency.QuadPart - CounterStart) / PCFreq;
-}
+  // 1.2 // РћРїСЂРµРґРµР»РµРЅРёРµ  СЃРёСЃС‚РµРјРЅРѕРіРѕ  РєР°С‚Р°Р»РѕРіР° Рё РµРіРѕ РІС‹РІРѕРґ РЅР° СЌРєСЂР°РЅ
+  TCHAR system_dir[INFO_BUFFER_SIZE];
+  DWORD CountBuf = INFO_BUFFER_SIZE;
+  GetSystemDirectory(system_dir, INFO_BUFFER_SIZE);
+  printf("\nSystem directory: %s \n", system_dir);
 
+  // 1.3 // РќР°Р·РІР°РЅРёРµ РєРѕРјРїСЊСЋС‚РµСЂР° Рё РїСЃРµРІРґРѕРЅРёРј С‚РµРєСѓС‰РµРіРѕ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
+  CountBuf = INFO_BUFFER_SIZE;
+  GetComputerName(system_dir, &CountBuf);  //РћРїСЂРµРґРµР»РµРЅРёРµ РЅР°Р·РІР°РЅРёСЏ РєРѕРјРїСЊСЋС‚РµСЂР°
+  printf("\nComputer name: %s\n", system_dir);
+  GetUserName(system_dir, &CountBuf);//РћРїСЂРµРґРµР»РµРЅРёРµ РёРјРµРЅРё РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
+  printf("    User name: %s\n", system_dir);
 
-int main()
-{
-    cout << "Hello wocddncmrld!" << endl;
+  // 1.4 // Р’С‹РІРѕРґ РґР»СЏ РєР°Р¶РґРѕРіРѕ С‚РѕРјР° СЃР»СѓР¶РµР±РЅРѕРµ РёРјСЏ, РїРµСЂРІС‹Р№ РїСѓС‚СЊ, РѕР±СЉС‘Рј Рё РєРѕР»РёС‡РµСЃРєС‚РІРѕ СЃРІРѕР±РѕРґРЅРѕРіРѕ РјРµСЃС‚Р°
+  DWORD CharCount = MAX_PATH;
+  char buffer[MAX_PATH];
+  CHAR firstN[MAX_PATH+1];
+  ULARGE_INTEGER total, available;
 
-    // Определение и вывод версии операционной  системы
-    OSVERSIONINFO osVers = { 0 };// Заполняем структуру нулевыми байтами (специальный синтаксис C89).
-    osVers.dwOSVersionInfoSize = sizeof(OSVERSIONINFO); // WinAPI требует указывать размер структуры, чтобы иметь возможностьрасширять структуру в новых версиях ОС.
-    GetVersionEx(&osVers);
-    printf("Windows v%d.%d (build %d)\n", osVers.dwMajorVersion, osVers.dwMinorVersion, osVers.dwBuildNumber);
+  HANDLE search = FindFirstVolume(buffer, sizeof(buffer));
+  do {
+    GetVolumePathNamesForVolumeName(buffer, firstN, CharCount, &CharCount);
+    printf("\nNext name of tom: %s",buffer);
+    printf("\nFirst path in tom: %s", firstN);
 
-    //Определение  системного  каталога и его вывод на экран
-    TCHAR system_dir[INFO_BUFFER_SIZE];
-    DWORD CountBuf = INFO_BUFFER_SIZE;
-    GetSystemDirectory(system_dir, INFO_BUFFER_SIZE);
-    printf("\nSystem directory: %s \n", system_dir);
+    if (GetDiskFreeSpaceEx((LPCSTR)firstN, (PULARGE_INTEGER)&available, (PULARGE_INTEGER)&total, NULL)==0) {
+        cout << "\nNo information.\n";
+    }
+    else {
+        cout << "\nVolume of tom:  " << total.QuadPart <<"  bytes, " ;
+        cout << "\nFree place:  " << available.QuadPart <<"  bytes. " ;
+        //printf("\n Free place:  = %lld\n", available.QuadPart); Р°РЅР°Р»РѕРіРёС‡РЅС‹Р№ РІС‹РІРѕРґ РёСЃРїРѕР»СЊР·СѓСЏ
+    }
+  }while (FindNextVolume(search, buffer, sizeof(buffer))==1);\
+  FindVolumeClose(search);
 
-    //название компьютера и псевдоним текущего пользователя
-    CountBuf = INFO_BUFFER_SIZE;
-    GetComputerName(system_dir, &CountBuf);  //Определение названия компьютера
-    printf("\nComputer name: %s\n", system_dir);
+  // 1.5 // РЎРїРёСЃРѕРє РїСЂРѕРіСЂР°РјРј, Р·Р°РїСѓСЃРєР°РµРјС‹С… РїСЂРё СЃС‚Р°СЂС‚Рµ СЃРёСЃС‚РµРјС‹
+  DWORD dwSize;
+  TCHAR szName[MAX_KEY_LENGTH];
+  HKEY hKey;
+  DWORD index = 0;
+  DWORD retCode;
+  DWORD BufferSize = 8192;
+  DWORD cbData;
 
-    GetUserName(system_dir, &CountBuf);//Определение имени пользователя
-    printf("    User name: %s\n", system_dir);
+  PPERF_DATA_BLOCK PerfData = (PPERF_DATA_BLOCK)malloc(BufferSize);
+  cbData = BufferSize;
 
-    //Вывод для каждого тома служебное имя, первый путь, объём и колическтво свободного места
-     DWORD CharCount = MAX_PATH;
-     char buffer[MAX_PATH];
-     CHAR firstN[MAX_PATH+1];
-     __int64 total, available;
-
-
-     HANDLE search = FindFirstVolume(buffer, sizeof(buffer));
-     //printf("\n First name   %s", buffer);
-     do {
-        GetVolumePathNamesForVolumeName(buffer, firstN, CharCount, &CharCount);
-        printf("\nNext name of tom: %s",buffer);
-        printf("\nFirst path in tom: %s", firstN);
-
-        if (GetDiskFreeSpaceEx((LPCSTR)firstN, (PULARGE_INTEGER)&available, (PULARGE_INTEGER)&total, NULL)==0) {
-            printf("\nNo information.\n");
-            }
-           else {
-            printf("\nVolume of tom: %u bytes, Free place: %u bytes\n", total, available);
-
-            }
-        }while (FindNextVolume(search, buffer, sizeof(buffer))==1);
-FindVolumeClose(search);
-
-
-       //список программ, запускаемых при старте системы
-      DWORD dwSize;
-      TCHAR szName[MAX_KEY_LENGTH];
-      HKEY hKey;
-      DWORD index = 0;
-      DWORD retCode;
-      DWORD BufferSize = 8192;
-      DWORD cbData;
-
-      PPERF_DATA_BLOCK PerfData = (PPERF_DATA_BLOCK)malloc(BufferSize);
-      cbData = BufferSize;
-
-    if (RegOpenKeyEx(HKEY_CURRENT_USER,
+  if (RegOpenKeyEx(HKEY_CURRENT_USER,
         "Software\\Microsoft\\Windows\\CurrentVersion\\Run",
-        0, KEY_ALL_ACCESS, &hKey) != ERROR_SUCCESS)
-    {
-        printf("\nRegOpenKeyEx() Error!\n");
-    }
-    else printf("\nRegOpenKeyEx() Good Job!\n");
+        0, KEY_ALL_ACCESS, &hKey) != ERROR_SUCCESS){
+    printf("\nRegOpenKeyEx() Error!\n");
+  }
+  else printf("\nRegOpenKeyEx() Good Job!\n");
 
-    while (1) { // бесконечный цикл, будет выполняться, пока не оборвется break-ом
-        dwSize = sizeof(szName);
-        retCode = RegEnumValue(hKey, index, szName, &dwSize, NULL, NULL, NULL, NULL);
-        if (retCode == ERROR_SUCCESS)
-        {
-            RegQueryValueEx(hKey, szName, NULL, NULL, (LPBYTE)PerfData, &cbData);
-            printf("\n%d) %s %s", index + 1, szName, PerfData);
-            index++;
-        }
-        else break;
+  while (1) { // Р±РµСЃРєРѕРЅРµС‡РЅС‹Р№ С†РёРєР», Р±СѓРґРµС‚ РІС‹РїРѕР»РЅСЏС‚СЊСЃСЏ, РїРѕРєР° РЅРµ РѕР±РѕСЂРІРµС‚СЃСЏ break-РѕРј
+    dwSize = sizeof(szName);
+    retCode = RegEnumValue(hKey, index, szName, &dwSize, NULL, NULL, NULL, NULL);
+    if (retCode == ERROR_SUCCESS){
+        RegQueryValueEx(hKey, szName, NULL, NULL, (LPBYTE)PerfData, &cbData);
+        printf("\n%d) %s %s", index + 1, szName, PerfData);
+        index++;
     }
-    RegCloseKey(hKey);
+    else break;
+  }
+  RegCloseKey(hKey);
 
-    StartCounter();
-    printf("Tacts in 2.2: %d mks\n\n", GetCounter()*1000000);
-    return 0;
+  // 2 // РћРїСЂРµРґРµР»РµРЅРёРµ С„СѓРЅРєС†РёРѕРЅР°Р»СЊРЅРѕСЃС‚Рё РёР·РјРµСЂРµРЅРёСЏ РїСЂРѕРёР·РІРѕРґРёС‚РµР»СЊРЅРѕСЃС‚Рё Р¦Рџ:
+  LARGE_INTEGER lpPerformanceCount_f;
+  LARGE_INTEGER lpFrequency;
+  QueryPerformanceFrequency(&lpFrequency); //Р·Р°РјРµСЂ СЂР°Р±РѕС‡РµР№ С‡Р°СЃС‚РѕС‚С‹ рќ‘“ Р¦Рџ
+  QueryPerformanceCounter(&lpPerformanceCount_f); //РїРѕРґСЃС‡РµС‚ РєРѕР»РёС‡РµСЃС‚РІР° С‚Р°РєС‚РѕРІ О”рќ‘Ў Р¦Рџ, РєРѕС‚РѕСЂРѕРµ Р·Р°РЅРёРјР°РµС‚ РІС‹РїРѕР»РЅРµРЅРёРµ РїСЂРѕРіСЂР°РјРјРѕР№ РїСѓРЅРєС‚Р° 1)
+
+  printf("\n\nOperating frequency of CP = %lld Hz\n", lpFrequency.QuadPart);
+  double Ncyc = 1e6 * ((double)lpPerformanceCount_f.QuadPart - (double)lpPerformanceCount_s.QuadPart) / (double)lpFrequency.QuadPart;
+  std::cout<<"Number of program execution cycles = "<<Ncyc<<" ns\n";
+  return 0;
 }
 
 
